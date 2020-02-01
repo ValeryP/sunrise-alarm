@@ -2,17 +2,11 @@ package com.sunrise_alarm
 
 import androidx.test.InstrumentationRegistry
 import androidx.test.runner.AndroidJUnit4
-
+import com.chibatching.kotpref.Kotpref
+import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
 
-import org.junit.Assert.*
-
-/**
- * Instrumented test, which will execute on an Android device.
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
 @RunWith(AndroidJUnit4::class)
 class ExampleInstrumentedTest {
     @Test
@@ -20,5 +14,12 @@ class ExampleInstrumentedTest {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getTargetContext()
         assertEquals("com.sunrise_alarm", appContext.packageName)
+    }
+
+    @Test
+    fun useAppContext1() {
+        val appContext = InstrumentationRegistry.getTargetContext()
+        Kotpref.init(appContext)
+        assertEquals("5:55 - 9:10, 18:0 - 21:30", SavedTime.toString())
     }
 }
