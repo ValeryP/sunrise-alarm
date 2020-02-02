@@ -1,15 +1,27 @@
 package com.sunrise_alarm
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.location.LocationManager
+import android.location.LocationManager.GPS_PROVIDER
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.chibatching.kotpref.Kotpref
+import com.karumi.dexter.Dexter
+import com.karumi.dexter.PermissionToken
+import com.karumi.dexter.listener.PermissionDeniedResponse
+import com.karumi.dexter.listener.PermissionGrantedResponse
+import com.karumi.dexter.listener.PermissionRequest
+import com.karumi.dexter.listener.single.CompositePermissionListener
+import com.karumi.dexter.listener.single.PermissionListener
+import com.karumi.dexter.listener.single.SnackbarOnDeniedPermissionListener
 import com.sunrise_alarm.app.R
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog
 import kotlinx.android.synthetic.main.activity_main.*
@@ -43,12 +55,51 @@ class MainActivity : AppCompatActivity() {
 
         bluetooth = Bluetooth(this)
         bluetooth.setBluetoothCallback(statusCallback)
-        bluetooth.setDiscoveryCallback(pairingCallback)
+        bluetooth.setDiscoveryCallback(discoveryCallback)
         bluetooth.setDeviceCallback(connectionCallback)
 
         switchButton.setOnClickListener { bluetooth.send("1|") }
         switchButton.isEnabled = false
         switchButton.backgroundTintList = ColorStateList.valueOf(getColor(R.color.colorGrey))
+
+        Dexter.withActivity(this)
+            .withPermission(Manifest.permission.ACCESS_COARSE_LOCATION)
+            .withListener(
+                CompositePermissionListener(
+                    SnackbarOnDeniedPermissionListener.Builder
+                        .with(switchButton, "Enable location to find closest bluetooth")
+                        .withOpenSettingsButton("Settings")
+                        .withDuration(5000)
+                        .build(),
+                    object : PermissionListener {
+                        override fun onPermissionGranted(response: PermissionGrantedResponse?) {
+                            val manager = getSystemService(LOCATION_SERVICE) as LocationManager
+                            if (!manager.isProviderEnabled(GPS_PROVIDER)) {
+                                checkGPSEnable()
+                            }
+                        }
+
+                        override fun onPermissionRationaleShouldBeShown(
+                            permission: PermissionRequest?,
+                            token: PermissionToken?
+                        ) {
+                        }
+
+                        override fun onPermissionDenied(response: PermissionDeniedResponse?) {}
+                    })
+            )
+            .check()
+    }
+
+    private fun checkGPSEnable() {
+        val dialogBuilder = AlertDialog.Builder(this)
+        dialogBuilder.setMessage("Enable GPS to find closest bluetooth")
+            .setCancelable(false)
+            .setPositiveButton("Enable") { _, _ ->
+                startActivity(Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            }
+        val alert = dialogBuilder.create()
+        alert.show()
     }
 
     // E.g: "0|202001250544 [0545-1001,1029-1010,]"
@@ -61,11 +112,20 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        Log.d("xxx", "onResume")
         bluetooth.onStart()
         if (bluetooth.isEnabled) {
-            Log.w("xxx", "onStart -> bluetooth.isEnabled")
+            Log.d("xxx", "onStart -> bluetooth.isEnabled")
+            val deviceAddress = "00:18:E4:40:00:06"
             if (!bluetooth.isConnected) {
-                bluetooth.connectToAddress("00:18:E4:40:00:06")
+                val device = bluetooth.pairedDevices.firstOrNull { it.address == deviceAddress }
+                if (device == null) {
+                    Log.d("xxx", "onStart -> startScanning")
+//                    bluetooth.pair(,"1234")
+                    TODO("connect when device unpaired and with turned off GPS")
+                } else {
+                    bluetooth.connectToAddress(deviceAddress)
+                }
             }
         } else {
             bluetooth.showEnableDialog(this)
@@ -74,9 +134,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        bluetooth.disconnect()
+        if (bluetooth.isConnected) bluetooth.disconnect()
         bluetooth.onStop()
-        Log.w("xxx", "onPause")
+        Log.d("xxx", "onPause")
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -84,29 +144,53 @@ class MainActivity : AppCompatActivity() {
         bluetooth.onActivityResult(requestCode, resultCode)
     }
 
-    private val pairingCallback = object : DiscoveryCallback {
-        override fun onDiscoveryStarted() {}
-        override fun onDiscoveryFinished() {}
-        override fun onDeviceFound(device: BluetoothDevice) {}
-        override fun onDevicePaired(device: BluetoothDevice) {}
-        override fun onDeviceUnpaired(device: BluetoothDevice) {}
+    private val discoveryCallback = object : DiscoveryCallback {
+        override fun onDiscoveryStarted() {
+            Log.d("xxx", "pairingCallback -> onDiscoveryStarted")
+        }
+
+        override fun onDiscoveryFinished() {
+            Log.d("xxx", "pairingCallback -> onDiscoveryFinished")
+        }
+
+        override fun onDeviceFound(device: BluetoothDevice) {
+            Log.d("xxx", "pairingCallback -> onDeviceFound: ${device.name} | ${device.address}")
+        }
+
+        override fun onDevicePaired(device: BluetoothDevice) {
+            Log.d("xxx", "pairingCallback -> onDevicePaired: ${device.name}")
+        }
+
+        override fun onDeviceUnpaired(device: BluetoothDevice) {
+            Log.d("xxx", "pairingCallback -> onDeviceUnpaired: ${device.name}")
+        }
+
         override fun onError(errorCode: Int) {
             Log.e("xxx", "pairingCallback -> onError: $errorCode")
         }
     }
 
     private val statusCallback: BluetoothCallback = object : BluetoothCallback {
-        override fun onBluetoothTurningOn() {}
-        override fun onBluetoothTurningOff() {}
-        override fun onBluetoothOff() {}
+        override fun onBluetoothTurningOn() {
+            Log.d("xxx", "statusCallback -> onBluetoothTurningOn")
+        }
+
+        override fun onBluetoothTurningOff() {
+            Log.d("xxx", "statusCallback -> onBluetoothTurningOff")
+        }
+
+        override fun onBluetoothOff() {
+            Log.d("xxx", "statusCallback -> onBluetoothOff")
+        }
+
         override fun onBluetoothOn() {
-            Log.w("xxx", "statusCallback -> onBluetoothOn")
+            Log.d("xxx", "statusCallback -> onBluetoothOn")
         }
 
         override fun onUserDeniedActivation() {
             Toast.makeText(
                 this@MainActivity,
-                "Time should be after ${SavedTime.timeFrom1()}",
+                "Allow bluetooth to use the app",
                 Toast.LENGTH_LONG
             ).show()
         }
@@ -114,18 +198,18 @@ class MainActivity : AppCompatActivity() {
 
     private val connectionCallback = object : DeviceCallback {
         override fun onDeviceConnected(device: BluetoothDevice?) {
-            Log.w("xxx", "connectionCallback -> onDeviceConnected")
+            Log.d("xxx", "connectionCallback -> onDeviceConnected")
             updateAlarmRanges()
         }
 
         override fun onDeviceDisconnected(device: BluetoothDevice?, message: String?) {
-            Log.w("xxx", "connectionCallback -> onDeviceDisconnected")
+            Log.d("xxx", "connectionCallback -> onDeviceDisconnected")
         }
 
         override fun onMessage(message: ByteArray?) {
             message?.let {
                 val text = String(it)
-                Log.w("xxx", "connectionCallback -> onMessage: $text")
+                Log.d("xxx", "connectionCallback -> onMessage: $text")
                 if (text.contains("isAlarm", true)) {
                     runOnUiThread {
                         switchButton.isEnabled = true
@@ -143,8 +227,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        override fun onError(errorCode: Int) {}
-        override fun onConnectError(device: BluetoothDevice?, message: String?) {}
+        override fun onError(errorCode: Int) {
+            Log.d("xxx", "connectionCallback -> onError: $errorCode")
+        }
+
+        override fun onConnectError(device: BluetoothDevice?, message: String?) {
+            Log.d("xxx", "connectionCallback -> onConnectError: $message")
+        }
     }
 
 
@@ -255,6 +344,7 @@ class MainActivity : AppCompatActivity() {
     private fun createTimePicker(callback: TimePickerDialog.OnTimeSetListener) {
         TimePickerDialog.newInstance(callback, true).apply {
             version = TimePickerDialog.Version.VERSION_1
+            isThemeDark = true
         }.show(supportFragmentManager, "TimePickerDialog")
     }
 }
