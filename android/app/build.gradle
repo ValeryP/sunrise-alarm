@@ -23,7 +23,7 @@ android {
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
     }
-    buildToolsVersion = '28.0.3'
+    buildToolsVersion = '29.0.3'
 }
 
 dependencies {
@@ -43,5 +43,5 @@ dependencies {
     testImplementation 'junit:junit:4.13'
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'com.google.android.material:material:1.1.0'
 }
