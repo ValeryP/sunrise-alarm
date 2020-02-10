@@ -214,6 +214,7 @@ class MainActivity : AppCompatActivity() {
         override fun onDeviceConnected(device: BluetoothDevice?) {
             Log.d("xxx", "connectionCallback -> onDeviceConnected")
             updateAlarmRanges()
+            motion_base.transitionToEnd()
         }
 
         override fun onDeviceDisconnected(device: BluetoothDevice?, message: String?) {
@@ -224,7 +225,7 @@ class MainActivity : AppCompatActivity() {
             message?.let {
                 val text = String(it)
                 Log.d("xxx", "connectionCallback -> onMessage: $text")
-                if (text.contains("isAlarm", true)) {
+                if (text.contains("isAlarm:", true)) {
                     switchButton.isEnabled = true
                     if (text.contains("isAlarm: 1", true)) {
                         switchButton.imageTintList =
@@ -245,6 +246,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun onConnectError(device: BluetoothDevice?, message: String?) {
             Log.d("xxx", "connectionCallback -> onConnectError: $message")
+            bluetooth.connectToAddress(DEVICE_ADDRESS)
         }
     }
 
