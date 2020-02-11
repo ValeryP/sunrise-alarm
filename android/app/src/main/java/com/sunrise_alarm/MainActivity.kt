@@ -107,6 +107,13 @@ class MainActivity : AppCompatActivity() {
 
         askPermissions()
 
+        switchButton.isEnabled = false
+        switchButton.backgroundTintList = ColorStateList.valueOf(getColor(R.color.colorGrey))
+        timeFrom1.isEnabled = false
+        timeFrom2.isEnabled = false
+        timeTo1.isEnabled = false
+        timeTo2.isEnabled = false
+
         bluetooth.onStart()
         if (bluetooth.isEnabled) {
             Log.d("xxx", "onStart -> bluetooth.isEnabled")
@@ -128,11 +135,13 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         Log.d("xxx", "onStop")
 
+        motion_base.progress = 0f
+        viewLight.visibility = INVISIBLE
+        switchButton.imageTintList = ColorStateList.valueOf(getColor(android.R.color.black))
+
         if (bluetooth.isConnected) bluetooth.disconnect()
         bluetooth.onStop()
-
-        switchButton.isEnabled = false
-        switchButton.backgroundTintList = ColorStateList.valueOf(getColor(R.color.colorGrey))
+        arduino = null
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -215,6 +224,10 @@ class MainActivity : AppCompatActivity() {
             Log.d("xxx", "connectionCallback -> onDeviceConnected")
             updateAlarmRanges()
             motion_base.transitionToEnd()
+            timeFrom1.isEnabled = true
+            timeFrom2.isEnabled = true
+            timeTo1.isEnabled = true
+            timeTo2.isEnabled = true
         }
 
         override fun onDeviceDisconnected(device: BluetoothDevice?, message: String?) {
@@ -225,7 +238,7 @@ class MainActivity : AppCompatActivity() {
             message?.let {
                 val text = String(it)
                 Log.d("xxx", "connectionCallback -> onMessage: $text")
-                if (text.contains("isAlarm:", true)) {
+                if (text.contains("isAlarm:", true) && motion_base.progress == 1f) {
                     switchButton.isEnabled = true
                     if (text.contains("isAlarm: 1", true)) {
                         switchButton.imageTintList =
