@@ -51,24 +51,10 @@ class MainActivity : AppCompatActivity() {
 
         invalidateTime()
         setupListeners()
-        setupBluetooth()
+
+        bluetoothManager = BluetoothManager(this)
 
         switchButton.setOnClickListener { bluetoothManager.send("1|") }
-    }
-
-    private fun setupBluetooth() {
-        bluetoothManager = BluetoothManager(this)
-        CoroutineScope(Dispatchers.Main).launch {
-            bluetoothManager.discoveryChannel.openSubscription().consumeEach { Log.d("xxx", it.message) }
-            bluetoothManager.bluetoothChannel.openSubscription().consumeEach { Log.d("xxx", it.message) }
-            bluetoothManager.deviceChannel.openSubscription().consumeEach {
-                Log.d("xxx", it.message)
-                when (it) {
-                    is BluetoothManager.BluetoothMessage -> onMessageReceived(it)
-                    is BluetoothManager.BluetoothDeviceConnected -> onDevideConnected()
-                }
-            }
-        }
     }
 
     private fun onMessageReceived(it: BluetoothManager.BluetoothMessage) {
@@ -143,6 +129,23 @@ class MainActivity : AppCompatActivity() {
         timeTo1.isEnabled = false
         timeTo2.isEnabled = false
 
+        CoroutineScope(Dispatchers.Main).launch {
+            bluetoothManager.deviceChannel.openSubscription().consumeEach {
+                Log.d("xxx", it.message)
+                when (it) {
+                    is BluetoothManager.BluetoothMessage -> onMessageReceived(it)
+                    is BluetoothManager.BluetoothDeviceConnected -> onDevideConnected()
+                }
+            }
+        }
+        CoroutineScope(Dispatchers.Main).launch {
+            bluetoothManager.discoveryChannel.openSubscription()
+                .consumeEach { Log.d("xxx", it.message) }
+        }
+        CoroutineScope(Dispatchers.Main).launch {
+            bluetoothManager.bluetoothChannel.openSubscription()
+                .consumeEach { Log.d("xxx", it.message) }
+        }
         bluetoothManager.start()
     }
 
