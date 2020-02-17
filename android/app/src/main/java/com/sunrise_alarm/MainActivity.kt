@@ -92,6 +92,7 @@ class MainActivity : AppCompatActivity() {
         timeFrom2.isEnabled = true
         timeTo1.isEnabled = true
         timeTo2.isEnabled = true
+        shimmer_view_container.hideShimmer()
     }
 
     private fun disableUi() {
@@ -103,6 +104,7 @@ class MainActivity : AppCompatActivity() {
         timeFrom2.isEnabled = false
         timeTo1.isEnabled = false
         timeTo2.isEnabled = false
+        shimmer_view_container.showShimmer(true)
     }
 
     private fun refreshUi() {
