@@ -1,24 +1,15 @@
 package com.sunrise_alarm
 
-import android.Manifest.permission.*
 import android.content.Intent
 import android.content.res.ColorStateList
-import android.location.LocationManager
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
 import android.view.View.INVISIBLE
 import android.view.View.VISIBLE
 import android.widget.Toast.LENGTH_LONG
 import android.widget.Toast.makeText
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.chibatching.kotpref.Kotpref
-import com.karumi.dexter.Dexter
-import com.karumi.dexter.MultiplePermissionsReport
-import com.karumi.dexter.PermissionToken
-import com.karumi.dexter.listener.PermissionRequest
-import com.karumi.dexter.listener.multi.MultiplePermissionsListener
 import com.sunrise_alarm.app.R
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog
 import kotlinx.android.synthetic.main.activity_main.*
@@ -48,16 +39,43 @@ class MainActivity : AppCompatActivity() {
         }
 
         Kotpref.init(applicationContext)
+        bluetoothManager = BluetoothManager(this, true)
 
-        invalidateTime()
+        refreshUi()
         setupListeners()
-
-        bluetoothManager = BluetoothManager(this)
-
-        switchButton.setOnClickListener { bluetoothManager.send("1|") }
     }
 
-    private fun onMessageReceived(it: BluetoothManager.BluetoothMessage) {
+    override fun onStart() {
+        super.onStart()
+        Log.d("xxx", "onStart")
+
+        ServiceManager.askPermissions(this)
+        disableUi()
+
+        CoroutineScope(Dispatchers.Main).launch {
+            bluetoothManager.subscribe().consumeEach {
+                when (it) {
+                    is BluetoothManager.BluetoothMessage -> processBluetoothMessage(it)
+                    is BluetoothManager.BluetoothDeviceConnected -> enableUi()
+                }
+            }
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Log.d("xxx", "onStop")
+
+        disableUi()
+        bluetoothManager.cancel()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        bluetoothManager.onActivityResult(requestCode, resultCode)
+    }
+
+    private fun processBluetoothMessage(it: BluetoothManager.BluetoothMessage) {
         if (it.message.contains("isAlarm:", true) && motion_base.progress == 1f) {
             switchButton.isEnabled = true
             val isAlarm = it.message.contains("isAlarm: 1", true)
@@ -67,8 +85,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun onDevideConnected() {
-        updateAlarmRanges()
+    private fun enableUi() {
+        bluetoothManager.updateAlarmRanges()
         motion_base.transitionToEnd()
         timeFrom1.isEnabled = true
         timeFrom2.isEnabled = true
@@ -76,103 +94,41 @@ class MainActivity : AppCompatActivity() {
         timeTo2.isEnabled = true
     }
 
-    private fun askPermissions() {
-        Dexter.withActivity(this)
-            .withPermissions(BLUETOOTH, BLUETOOTH_ADMIN, ACCESS_COARSE_LOCATION)
-            .withListener(
-                object : MultiplePermissionsListener {
-                    override fun onPermissionsChecked(report: MultiplePermissionsReport) =
-                        if (report.areAllPermissionsGranted()) {
-                            checkGPSEnable()
-                        } else {
-                            askPermissions()
-                        }
-
-                    override fun onPermissionRationaleShouldBeShown(
-                        permissions: List<PermissionRequest>, token: PermissionToken
-                    ) = token.continuePermissionRequest()
-                })
-            .check()
-    }
-
-    private fun checkGPSEnable() {
-        val manager = getSystemService(LOCATION_SERVICE) as LocationManager
-        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            AlertDialog.Builder(this).setMessage("Enable GPS to find closest bluetooth")
-                .setCancelable(false)
-                .setPositiveButton("Enable") { _, _ ->
-                    startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                }
-                .create()
-                .show()
-        }
-    }
-
-    // E.g: "0|202001250544 [0545-1001,1029-1010,]"
-    private fun updateAlarmRanges() {
-        val msg = "0|${DateTime.now().toString("yyyyMMddHHmm")} " +
-                "[${SavedTime.timeFrom1()}-${SavedTime.timeTo1()}," +
-                "${SavedTime.timeFrom2()}-${SavedTime.timeTo2()},]"
-        bluetoothManager.send(msg.replace(":", ""))
-    }
-
-    override fun onStart() {
-        super.onStart()
-        Log.d("xxx", "onStart")
-
-        askPermissions()
-
+    private fun disableUi() {
+        motion_base.progress = 0f
+        viewLight.visibility = INVISIBLE
         switchButton.isEnabled = false
         switchButton.backgroundTintList = ColorStateList.valueOf(getColor(R.color.colorGrey))
         timeFrom1.isEnabled = false
         timeFrom2.isEnabled = false
         timeTo1.isEnabled = false
         timeTo2.isEnabled = false
-
-        CoroutineScope(Dispatchers.Main).launch {
-            bluetoothManager.deviceChannel.openSubscription().consumeEach {
-                Log.d("xxx", it.message)
-                when (it) {
-                    is BluetoothManager.BluetoothMessage -> onMessageReceived(it)
-                    is BluetoothManager.BluetoothDeviceConnected -> onDevideConnected()
-                }
-            }
-        }
-        CoroutineScope(Dispatchers.Main).launch {
-            bluetoothManager.discoveryChannel.openSubscription()
-                .consumeEach { Log.d("xxx", it.message) }
-        }
-        CoroutineScope(Dispatchers.Main).launch {
-            bluetoothManager.bluetoothChannel.openSubscription()
-                .consumeEach { Log.d("xxx", it.message) }
-        }
-        bluetoothManager.start()
     }
 
-    override fun onStop() {
-        super.onStop()
-        Log.d("xxx", "onStop")
-
-        motion_base.progress = 0f
-        viewLight.visibility = INVISIBLE
-        switchButton.imageTintList = ColorStateList.valueOf(getColor(android.R.color.black))
-
-        bluetoothManager.stop()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        bluetoothManager.onActivityResult(requestCode, resultCode)
+    private fun refreshUi() {
+        timeFrom1.text = SavedTime.timeFrom1()
+        timeTo1.text = SavedTime.timeTo1()
+        timeFrom2.text = SavedTime.timeFrom2()
+        timeTo2.text = SavedTime.timeTo2()
     }
 
     private fun setupListeners() {
+        fun createTimePicker(callback: TimePickerDialog.OnTimeSetListener) {
+            TimePickerDialog.newInstance(callback, true).apply {
+                version = TimePickerDialog.Version.VERSION_1
+                isThemeDark = true
+            }.show(supportFragmentManager, "TimePickerDialog")
+        }
+
+        switchButton.setOnClickListener { bluetoothManager.switchLight() }
+
         timeFrom1.setOnClickListener {
             createTimePicker(
                 TimePickerDialog.OnTimeSetListener { _: TimePickerDialog?, hour: Int, minute: Int, _: Int ->
                     SavedTime.hourFrom1 = hour
                     SavedTime.minFrom1 = minute
-                    invalidateTime()
-                    updateAlarmRanges()
+                    refreshUi()
+                    bluetoothManager.updateAlarmRanges()
                 })
         }
         timeTo1.setOnClickListener {
@@ -186,8 +142,8 @@ class MainActivity : AppCompatActivity() {
                     if (timeSelected.isAfter(timeFrom1)) {
                         SavedTime.hourTo1 = hour
                         SavedTime.minTo1 = minute
-                        invalidateTime()
-                        updateAlarmRanges()
+                        refreshUi()
+                        bluetoothManager.updateAlarmRanges()
                     } else {
                         makeText(
                             this,
@@ -217,8 +173,8 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         SavedTime.hourTo1 = hour
                         SavedTime.minTo1 = minute
-                        invalidateTime()
-                        updateAlarmRanges()
+                        refreshUi()
+                        bluetoothManager.updateAlarmRanges()
                     }
                 })
         }
@@ -254,25 +210,11 @@ class MainActivity : AppCompatActivity() {
                         else -> {
                             SavedTime.hourTo1 = hour
                             SavedTime.minTo1 = minute
-                            invalidateTime()
-                            updateAlarmRanges()
+                            refreshUi()
+                            bluetoothManager.updateAlarmRanges()
                         }
                     }
                 })
         }
-    }
-
-    private fun invalidateTime() {
-        timeFrom1.text = SavedTime.timeFrom1()
-        timeTo1.text = SavedTime.timeTo1()
-        timeFrom2.text = SavedTime.timeFrom2()
-        timeTo2.text = SavedTime.timeTo2()
-    }
-
-    private fun createTimePicker(callback: TimePickerDialog.OnTimeSetListener) {
-        TimePickerDialog.newInstance(callback, true).apply {
-            version = TimePickerDialog.Version.VERSION_1
-            isThemeDark = true
-        }.show(supportFragmentManager, "TimePickerDialog")
     }
 }

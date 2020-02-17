@@ -11,11 +11,13 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.BroadcastChannel
 import kotlinx.coroutines.channels.ConflatedBroadcastChannel
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.launch
 import me.aflak.bluetooth.Bluetooth
 import me.aflak.bluetooth.interfaces.BluetoothCallback
 import me.aflak.bluetooth.interfaces.DeviceCallback
 import me.aflak.bluetooth.interfaces.DiscoveryCallback
+import org.joda.time.DateTime
 
 /*
  * @author Valeriy Palamarchuk
@@ -23,7 +25,7 @@ import me.aflak.bluetooth.interfaces.DiscoveryCallback
  * Created on 13.02.2020
  */
 @ExperimentalCoroutinesApi
-class BluetoothManager(val context: Activity) {
+class BluetoothManager(val context: Activity, val logsEnabled: Boolean = false) {
     private var bluetooth = Bluetooth(context)
     private var arduino: BluetoothDevice? = null
 
@@ -49,7 +51,9 @@ class BluetoothManager(val context: Activity) {
         bluetooth.setCallbackOnUI(context)
     }
 
-    fun start() {
+    fun subscribe(): ReceiveChannel<BluetoothEvent> {
+        if (logsEnabled) Log.d("xxx", "subscribe -> subscribe()")
+
         bluetoothChannel = ConflatedBroadcastChannel()
         discoveryChannel = ConflatedBroadcastChannel()
         deviceChannel = ConflatedBroadcastChannel()
@@ -59,11 +63,11 @@ class BluetoothManager(val context: Activity) {
 
         bluetooth.onStart()
         if (bluetooth.isEnabled) {
-            emitMessage(bluetoothChannel, "onStart -> bluetooth.isEnabled")
+            emitMessage(bluetoothChannel, "subscribe -> bluetooth.isEnabled")
             if (!bluetooth.isConnected) {
                 val device = bluetooth.pairedDevices.firstOrNull { it.address == DEVICE_ADDRESS }
                 if (device == null) {
-                    Log.d("xxx", "onStart -> startScanning")
+                    if (logsEnabled) Log.d("xxx", "subscribe -> startScanning")
                     bluetooth.startScanning()
                 } else {
                     bluetooth.connectToAddress(DEVICE_ADDRESS)
@@ -72,9 +76,11 @@ class BluetoothManager(val context: Activity) {
         } else {
             bluetooth.showEnableDialog(context as Activity?)
         }
+
+        return deviceChannel.openSubscription()
     }
 
-    fun stop() {
+    fun cancel() {
         bluetoothChannel.cancel()
         discoveryChannel.cancel()
         deviceChannel.cancel()
@@ -84,8 +90,16 @@ class BluetoothManager(val context: Activity) {
         arduino = null
     }
 
-    fun send(message: String) {
-        bluetooth.send(message)
+    fun switchLight() {
+        bluetooth.send("1|")
+    }
+
+    // E.g: "0|202001250544 [0545-1001,1029-1010,]"
+    fun updateAlarmRanges() {
+        val msg = "0|${DateTime.now().toString("yyyyMMddHHmm")} " +
+                "[${SavedTime.timeFrom1()}-${SavedTime.timeTo1()}," +
+                "${SavedTime.timeFrom2()}-${SavedTime.timeTo2()},]"
+        bluetooth.send(msg.replace(":", ""))
     }
 
     fun onActivityResult(requestCode: Int, resultCode: Int) {
@@ -94,17 +108,19 @@ class BluetoothManager(val context: Activity) {
 
     private fun emitMessage(channel: BroadcastChannel<BluetoothEvent>, message: String) {
         if (!channel.isClosedForSend) {
+            if (logsEnabled) Log.d("xxx", "emitMessage -> $message")
             GlobalScope.launch(Dispatchers.Main) { channel.send(BluetoothMessage(message)) }
         } else {
-            Log.d("xxx", "emitMessage - channel.isClosedForSend: ${channel.isClosedForSend}")
+            Log.w("xxx", "emitMessage - channel.isClosedForSend: ${channel.isClosedForSend}")
         }
     }
 
     private fun emitError(channel: BroadcastChannel<BluetoothEvent>, message: String) {
         if (!channel.isClosedForSend) {
+            if (logsEnabled) Log.d("xxx", "emitError -> $message")
             GlobalScope.launch(Dispatchers.Main) { channel.send(BluetoothError(message)) }
         } else {
-            Log.d("xxx", "emitError - channel.isClosedForSend: ${channel.isClosedForSend}")
+            Log.w("xxx", "emitError - channel.isClosedForSend: ${channel.isClosedForSend}")
         }
     }
 
@@ -147,7 +163,10 @@ class BluetoothManager(val context: Activity) {
                     makeText(context, "You're too far from device", LENGTH_LONG).show()
                 } else if (device == null) {
                     if (!pairDialog.isShowing) {
-                        emitMessage(discoveryChannel, "pairingCallback -> onDiscoveryFinished (dialog)")
+                        emitMessage(
+                            discoveryChannel,
+                            "pairingCallback -> onDiscoveryFinished (dialog)"
+                        )
                         pairDialog.show()
                     }
                 }
@@ -188,6 +207,7 @@ class BluetoothManager(val context: Activity) {
                 if (!deviceChannel.isClosedForSend) {
                     GlobalScope.launch(Dispatchers.Main) {
                         deviceChannel.send(BluetoothDeviceConnected("connectionCallback -> onDeviceConnected"))
+                        if (logsEnabled) Log.d("xxx", "registerDeviceChannel -> onDeviceConnected")
                     }
                 }
             }
