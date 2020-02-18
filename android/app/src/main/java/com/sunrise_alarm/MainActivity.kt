@@ -48,15 +48,16 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         Log.d("xxx", "onStart")
-
-        ServiceManager.askPermissions(this)
         disableUi()
 
-        CoroutineScope(Dispatchers.Main).launch {
-            bluetoothManager.subscribe().consumeEach {
-                when (it) {
-                    is BluetoothManager.BluetoothMessage -> processBluetoothMessage(it)
-                    is BluetoothManager.BluetoothDeviceConnected -> enableUi()
+        ServiceManager.askPermissions(this) {
+            Log.d("xxx", "success()")
+            CoroutineScope(Dispatchers.Main).launch {
+                bluetoothManager.subscribe().consumeEach {
+                    when (it) {
+                        is BluetoothManager.BluetoothMessage -> processBluetoothMessage(it)
+                        is BluetoothManager.BluetoothDeviceConnected -> enableUi()
+                    }
                 }
             }
         }
