@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "55020570893",
+    "firebase_url": "https://arduino-remote-relay.firebaseio.com",
+    "project_id": "arduino-remote-relay",
+    "storage_bucket": "arduino-remote-relay.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:55020570893:android:1e5065881667462cf78844",
+        "android_client_info": {
+          "package_name": "com.sunrise_alarm"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "55020570893-pk5qi1ephnjsad9jhvfl4rm3e8vgc3nc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAojZerKYL1CfF6BYEyyHOaXbQxLJSGvOw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "55020570893-pk5qi1ephnjsad9jhvfl4rm3e8vgc3nc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:55020570893:android:0e777a58caa22cdbf78844",
+        "android_client_info": {
+          "package_name": "com.sunrise_alarm.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "55020570893-pk5qi1ephnjsad9jhvfl4rm3e8vgc3nc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAojZerKYL1CfF6BYEyyHOaXbQxLJSGvOw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "55020570893-pk5qi1ephnjsad9jhvfl4rm3e8vgc3nc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
