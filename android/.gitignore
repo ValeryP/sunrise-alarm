@@ -230,4 +230,4 @@ fabric.properties
 /build
 /captures
 /.idea/
-/signing/
+/publish/

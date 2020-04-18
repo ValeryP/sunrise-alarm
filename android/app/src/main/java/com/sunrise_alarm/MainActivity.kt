@@ -174,8 +174,8 @@ class MainActivity : AppCompatActivity() {
                             LENGTH_LONG
                         ).show()
                     } else {
-                        SavedTime.hourTo1 = hour
-                        SavedTime.minTo1 = minute
+                        SavedTime.hourFrom2 = hour
+                        SavedTime.minFrom2 = minute
                         refreshUi()
                         bluetoothManager.updateAlarmRanges()
                     }
@@ -211,8 +211,8 @@ class MainActivity : AppCompatActivity() {
                             ).show()
                         }
                         else -> {
-                            SavedTime.hourTo1 = hour
-                            SavedTime.minTo1 = minute
+                            SavedTime.hourTo2 = hour
+                            SavedTime.minTo2 = minute
                             refreshUi()
                             bluetoothManager.updateAlarmRanges()
                         }
