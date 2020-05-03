@@ -10,6 +10,9 @@ import android.widget.Toast.LENGTH_LONG
 import android.widget.Toast.makeText
 import androidx.appcompat.app.AppCompatActivity
 import com.chibatching.kotpref.Kotpref
+import com.google.firebase.iid.FirebaseInstanceId
+import com.google.firebase.iid.InstanceIdResult
+import com.google.firebase.messaging.FirebaseMessaging
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
@@ -42,6 +45,23 @@ class MainActivity : AppCompatActivity() {
 
         refreshUi()
         setupListeners()
+        subscribeFCMTopic()
+    }
+
+    private fun subscribeFCMTopic() {
+        FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener(this) { instanceIdResult: InstanceIdResult ->
+            val newToken = instanceIdResult.token
+            Log.i("xxx", "newToken: $newToken")
+        }
+        Log.i("xxx", "subscribeFCMTopic")
+        FirebaseMessaging.getInstance().subscribeToTopic("light")
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    Log.i("xxx", "subscribed")
+                } else {
+                    Log.i("xxx", "subscribed failded")
+                }
+            }
     }
 
     override fun onStart() {

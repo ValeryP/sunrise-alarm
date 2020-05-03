@@ -15,34 +15,13 @@
       },
       "oauth_client": [
         {
-          "client_id": "55020570893-pk5qi1ephnjsad9jhvfl4rm3e8vgc3nc.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyAojZerKYL1CfF6BYEyyHOaXbQxLJSGvOw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "55020570893-pk5qi1ephnjsad9jhvfl4rm3e8vgc3nc.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:55020570893:android:0e777a58caa22cdbf78844",
-        "android_client_info": {
-          "package_name": "com.sunrise_alarm"
-        }
-      },
-      "oauth_client": [
+          "client_id": "55020570893-mi8p1mls3f38tfj8o52vdn360thvl3cn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sunrise_alarm",
+            "certificate_hash": "0c791656a4d30fb3108b7b45ddf93c12a6a5191f"
+          }
+        },
         {
           "client_id": "55020570893-pk5qi1ephnjsad9jhvfl4rm3e8vgc3nc.apps.googleusercontent.com",
           "client_type": 3
