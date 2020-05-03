@@ -1,5 +1,5 @@
 <manifest xmlns:dist="http://schemas.android.com/apk/distribution"
-          package="com.sunrise_alarm.app.instant">
+          package="com.sunrise_alarm.instant">
     <dist:module dist:instant="true" dist:onDemand="false">
         <dist:fusing dist:include="true"/>
     </dist:module>

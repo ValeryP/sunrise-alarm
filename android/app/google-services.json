@@ -39,7 +39,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:55020570893:android:0e777a58caa22cdbf78844",
         "android_client_info": {
-          "package_name": "com.sunrise_alarm.app"
+          "package_name": "com.sunrise_alarm"
         }
       },
       "oauth_client": [
