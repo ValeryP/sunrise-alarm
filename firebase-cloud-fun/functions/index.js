@@ -12,7 +12,7 @@ function sendFCM(response, isLightOn) {
     const config = {
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'key=AAAADM97SQ0:APA91bEP5jtaaJ3gVGdvAXD3duqB3h4dPjScZj7WllCmkhM8X_gkMsEc04SthAazBqI2JfNagYd_oSXT1afgWwgZjm1BTAK-AcDsTgD_H7k8jbRiHeYAk_KasItIjeioUBOxRYA4_8yh',
+            'Authorization': functions.config().header.authorization,
         }
     };
     axios.post('https://fcm.googleapis.com/fcm/send', postData, config)
