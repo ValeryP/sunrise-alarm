@@ -1,8 +1,9 @@
 apply plugin: 'com.android.dynamic-feature'
 apply plugin: 'com.google.gms.google-services'
-android {
 
+android {
     compileSdkVersion 29
+    buildToolsVersion = '29.0.3'
 
     defaultConfig {
         minSdkVersion versions.minSdk
@@ -13,9 +14,9 @@ android {
         sourceCompatibility = "1.8"
         targetCompatibility = "1.8"
     }
-    buildToolsVersion = '29.0.3'
 }
 dependencies {
     implementation project(':app')
-    implementation 'com.google.firebase:firebase-messaging:20.1.0'
+    implementation 'com.google.firebase:firebase-messaging:20.1.6'
 }
+
