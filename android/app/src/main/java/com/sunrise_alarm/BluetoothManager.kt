@@ -2,11 +2,12 @@ package com.sunrise_alarm
 
 import android.app.Activity
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.util.Log
 import android.widget.Toast.LENGTH_LONG
 import android.widget.Toast.makeText
 import androidx.appcompat.app.AlertDialog
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.BroadcastChannel
@@ -25,7 +26,7 @@ import org.joda.time.DateTime
  * Created on 13.02.2020
  */
 @ExperimentalCoroutinesApi
-class BluetoothManager(val context: Activity, val logsEnabled: Boolean = false) {
+class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
     private var bluetooth = Bluetooth(context)
     private var arduino: BluetoothDevice? = null
 
@@ -46,10 +47,6 @@ class BluetoothManager(val context: Activity, val logsEnabled: Boolean = false) 
         .setCancelable(false)
         .setPositiveButton("OK") { _, _ -> bluetooth.pair(arduino, "1234") }
         .create()
-
-    init {
-        bluetooth.setCallbackOnUI(context)
-    }
 
     fun subscribe(): ReceiveChannel<BluetoothEvent> {
         if (logsEnabled) Log.d("xxx", "subscribe -> subscribe()")
@@ -109,7 +106,7 @@ class BluetoothManager(val context: Activity, val logsEnabled: Boolean = false) 
     private fun emitMessage(channel: BroadcastChannel<BluetoothEvent>, message: String) {
         if (!channel.isClosedForSend) {
             if (logsEnabled) Log.d("xxx", "emitMessage -> $message")
-            GlobalScope.launch(Dispatchers.Main) { channel.send(BluetoothMessage(message)) }
+            GlobalScope.launch(Main) { channel.send(BluetoothMessage(message)) }
         } else {
             Log.w("xxx", "emitMessage - channel.isClosedForSend: ${channel.isClosedForSend}")
         }
@@ -118,7 +115,7 @@ class BluetoothManager(val context: Activity, val logsEnabled: Boolean = false) 
     private fun emitError(channel: BroadcastChannel<BluetoothEvent>, message: String) {
         if (!channel.isClosedForSend) {
             if (logsEnabled) Log.d("xxx", "emitError -> $message")
-            GlobalScope.launch(Dispatchers.Main) { channel.send(BluetoothError(message)) }
+            GlobalScope.launch(Main) { channel.send(BluetoothError(message)) }
         } else {
             Log.w("xxx", "emitError - channel.isClosedForSend: ${channel.isClosedForSend}")
         }
@@ -205,7 +202,7 @@ class BluetoothManager(val context: Activity, val logsEnabled: Boolean = false) 
         bluetooth.setDeviceCallback(object : DeviceCallback {
             override fun onDeviceConnected(device: BluetoothDevice?) {
                 if (!deviceChannel.isClosedForSend) {
-                    GlobalScope.launch(Dispatchers.Main) {
+                    GlobalScope.launch(Main) {
                         deviceChannel.send(BluetoothDeviceConnected("connectionCallback -> onDeviceConnected"))
                         if (logsEnabled) Log.d("xxx", "registerDeviceChannel -> onDeviceConnected")
                     }

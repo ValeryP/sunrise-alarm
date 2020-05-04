@@ -13,10 +13,12 @@ import com.chibatching.kotpref.Kotpref
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.iid.InstanceIdResult
 import com.google.firebase.messaging.FirebaseMessaging
+import com.sunrise_alarm.BluetoothManager.BluetoothDeviceConnected
+import com.sunrise_alarm.BluetoothManager.BluetoothMessage
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
@@ -71,11 +73,11 @@ class MainActivity : AppCompatActivity() {
 
         ServiceManager.askPermissions(this) {
             Log.d("xxx", "success()")
-            CoroutineScope(Dispatchers.Main).launch {
+            CoroutineScope(Main).launch {
                 bluetoothManager.subscribe().consumeEach {
                     when (it) {
-                        is BluetoothManager.BluetoothMessage -> processBluetoothMessage(it)
-                        is BluetoothManager.BluetoothDeviceConnected -> enableUi()
+                        is BluetoothMessage -> processBluetoothMessage(it)
+                        is BluetoothDeviceConnected -> enableUi()
                     }
                 }
             }
@@ -95,7 +97,7 @@ class MainActivity : AppCompatActivity() {
         bluetoothManager.onActivityResult(requestCode, resultCode)
     }
 
-    private fun processBluetoothMessage(it: BluetoothManager.BluetoothMessage) {
+    private fun processBluetoothMessage(it: BluetoothMessage) {
         if (it.message.contains("isAlarm:", true) && motion_base.progress == 1f) {
             switchButton.isEnabled = true
             val isAlarm = it.message.contains("isAlarm: 1", true)
