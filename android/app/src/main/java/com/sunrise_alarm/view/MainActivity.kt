@@ -1,4 +1,4 @@
-package com.sunrise_alarm
+package com.sunrise_alarm.view
 
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -14,9 +14,13 @@ import com.chibatching.kotpref.Kotpref
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.iid.InstanceIdResult
 import com.google.firebase.messaging.FirebaseMessaging
-import com.sunrise_alarm.BluetoothManager.BluetoothDeviceConnected
-import com.sunrise_alarm.BluetoothManager.BluetoothMessage
-import com.sunrise_alarm.Const.LOG_TAG
+import com.sunrise_alarm.utils.BluetoothManager
+import com.sunrise_alarm.utils.BluetoothManager.BluetoothDeviceConnected
+import com.sunrise_alarm.utils.BluetoothManager.BluetoothMessage
+import com.sunrise_alarm.R
+import com.sunrise_alarm.service.ServiceManager
+import com.sunrise_alarm.data.SavedTime
+import com.sunrise_alarm.utils.Const.LOG_TAG
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
@@ -123,7 +127,8 @@ class MainActivity : AppCompatActivity() {
         viewLight.visibility = INVISIBLE
         switchButton.isEnabled = false
         switchButton.backgroundTintList =
-            ColorStateList.valueOf(ResourcesCompat.getColor(resources, R.color.colorGrey, null))
+            ColorStateList.valueOf(ResourcesCompat.getColor(resources,
+                R.color.colorGrey, null))
         timeFrom1.isEnabled = false
         timeFrom2.isEnabled = false
         timeTo1.isEnabled = false

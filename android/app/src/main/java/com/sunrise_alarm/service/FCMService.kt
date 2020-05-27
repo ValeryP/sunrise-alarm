@@ -1,9 +1,10 @@
-package com.sunrise_alarm
+package com.sunrise_alarm.service
 
 import android.util.Log
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
-import com.sunrise_alarm.BluetoothManager.BluetoothMessage
+import com.sunrise_alarm.utils.BluetoothManager
+import com.sunrise_alarm.utils.BluetoothManager.BluetoothMessage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.ExperimentalCoroutinesApi

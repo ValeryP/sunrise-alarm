@@ -1,4 +1,4 @@
-package com.sunrise_alarm
+package com.sunrise_alarm.utils
 
 /*
  * @author Valeriy Palamarchuk

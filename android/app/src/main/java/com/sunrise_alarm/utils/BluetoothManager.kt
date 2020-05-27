@@ -1,4 +1,4 @@
-package com.sunrise_alarm
+package com.sunrise_alarm.utils
 
 import android.app.Activity
 import android.bluetooth.BluetoothDevice
@@ -7,9 +7,11 @@ import android.util.Log
 import android.widget.Toast.LENGTH_LONG
 import android.widget.Toast.makeText
 import androidx.appcompat.app.AlertDialog
-import com.sunrise_alarm.Const.BLUETOOTH_PIN
-import com.sunrise_alarm.Const.DEVICE_ADDRESS
-import com.sunrise_alarm.Const.LOG_TAG
+import com.sunrise_alarm.R
+import com.sunrise_alarm.data.SavedTime
+import com.sunrise_alarm.utils.Const.BLUETOOTH_PIN
+import com.sunrise_alarm.utils.Const.DEVICE_ADDRESS
+import com.sunrise_alarm.utils.Const.LOG_TAG
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -37,9 +39,12 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
         val message: String
     }
 
-    data class BluetoothError(override val message: String) : BluetoothEvent
-    data class BluetoothMessage(override val message: String) : BluetoothEvent
-    data class BluetoothDeviceConnected(override val message: String) : BluetoothEvent
+    data class BluetoothError(override val message: String) :
+        BluetoothEvent
+    data class BluetoothMessage(override val message: String) :
+        BluetoothEvent
+    data class BluetoothDeviceConnected(override val message: String) :
+        BluetoothEvent
 
     var bluetoothChannel = ConflatedBroadcastChannel<BluetoothEvent>()
     var discoveryChannel = ConflatedBroadcastChannel<BluetoothEvent>()
@@ -109,7 +114,11 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
     private fun emitMessage(channel: BroadcastChannel<BluetoothEvent>, message: String) {
         if (!channel.isClosedForSend) {
             if (logsEnabled) Log.d(LOG_TAG, "emitMessage -> $message")
-            GlobalScope.launch(Main) { channel.send(BluetoothMessage(message)) }
+            GlobalScope.launch(Main) { channel.send(
+                BluetoothMessage(
+                    message
+                )
+            ) }
         } else {
             Log.w(LOG_TAG, "emitMessage - channel.isClosedForSend: ${channel.isClosedForSend}")
         }
@@ -118,7 +127,11 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
     private fun emitError(channel: BroadcastChannel<BluetoothEvent>, message: String) {
         if (!channel.isClosedForSend) {
             if (logsEnabled) Log.d(LOG_TAG, "emitError -> $message")
-            GlobalScope.launch(Main) { channel.send(BluetoothError(message)) }
+            GlobalScope.launch(Main) { channel.send(
+                BluetoothError(
+                    message
+                )
+            ) }
         } else {
             Log.w(LOG_TAG, "emitError - channel.isClosedForSend: ${channel.isClosedForSend}")
         }
@@ -206,7 +219,11 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
             override fun onDeviceConnected(device: BluetoothDevice?) {
                 if (!deviceChannel.isClosedForSend) {
                     GlobalScope.launch(Main) {
-                        deviceChannel.send(BluetoothDeviceConnected("connectionCallback -> onDeviceConnected"))
+                        deviceChannel.send(
+                            BluetoothDeviceConnected(
+                                "connectionCallback -> onDeviceConnected"
+                            )
+                        )
                         if (logsEnabled) Log.d(LOG_TAG, "registerDeviceChannel -> onDeviceConnected")
                     }
                 }

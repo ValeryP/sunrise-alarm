@@ -1,4 +1,4 @@
-package com.sunrise_alarm
+package com.sunrise_alarm.service
 
 import android.Manifest.permission.*
 import android.content.Intent
@@ -14,7 +14,8 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
-import com.sunrise_alarm.Const.LOG_TAG
+import com.sunrise_alarm.R
+import com.sunrise_alarm.utils.Const.LOG_TAG
 
 /*
  * @author Valeriy Palamarchuk
@@ -24,12 +25,16 @@ import com.sunrise_alarm.Const.LOG_TAG
 class ServiceManager {
     companion object {
         fun askPermissions(activity: AppCompatActivity, success: () -> Unit) {
-            Dexter.withActivity(activity)
+            Dexter.withContext(activity)
                 .withPermissions(BLUETOOTH, BLUETOOTH_ADMIN, ACCESS_COARSE_LOCATION)
                 .withListener(object : MultiplePermissionsListener {
                     override fun onPermissionsChecked(report: MultiplePermissionsReport) {
                         Log.d(LOG_TAG, "onPermissionsChecked")
-                        verifyPermissions(report, activity, success)
+                        verifyPermissions(
+                            report,
+                            activity,
+                            success
+                        )
                     }
 
                     override fun onPermissionRationaleShouldBeShown(
@@ -82,7 +87,10 @@ class ServiceManager {
                         .show()
                 }
             } else {
-                askPermissions(activity, success)
+                askPermissions(
+                    activity,
+                    success
+                )
             }
         }
     }

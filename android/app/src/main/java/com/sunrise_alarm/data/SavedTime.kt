@@ -1,4 +1,4 @@
-package com.sunrise_alarm
+package com.sunrise_alarm.data
 
 import com.chibatching.kotpref.KotprefModel
 
@@ -18,19 +18,27 @@ object SavedTime : KotprefModel() {
     var minTo2 by intPref(default = 30)
 
     fun timeFrom1(): String {
-        return "${fix(hourFrom1)}:${fix(minFrom1)}"
+        return "${fix(hourFrom1)}:${fix(
+            minFrom1
+        )}"
     }
 
     fun timeTo1(): String {
-        return "${fix(hourTo1)}:${fix(minTo1)}"
+        return "${fix(hourTo1)}:${fix(
+            minTo1
+        )}"
     }
 
     fun timeFrom2(): String {
-        return "${fix(hourFrom2)}:${fix(minFrom2)}"
+        return "${fix(hourFrom2)}:${fix(
+            minFrom2
+        )}"
     }
 
     fun timeTo2(): String {
-        return "${fix(hourTo2)}:${fix(minTo2)}"
+        return "${fix(hourTo2)}:${fix(
+            minTo2
+        )}"
     }
 
     private fun fix(value: Int): String {
