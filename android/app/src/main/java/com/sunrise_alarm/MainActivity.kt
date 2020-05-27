@@ -9,12 +9,14 @@ import android.view.View.VISIBLE
 import android.widget.Toast.LENGTH_LONG
 import android.widget.Toast.makeText
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import com.chibatching.kotpref.Kotpref
 import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.iid.InstanceIdResult
 import com.google.firebase.messaging.FirebaseMessaging
 import com.sunrise_alarm.BluetoothManager.BluetoothDeviceConnected
 import com.sunrise_alarm.BluetoothManager.BluetoothMessage
+import com.sunrise_alarm.Const.LOG_TAG
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.CoroutineScope
@@ -24,8 +26,6 @@ import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 import org.joda.time.DateTime
 
-
-const val DEVICE_ADDRESS = "00:18:E4:40:00:06"
 
 @ExperimentalCoroutinesApi
 class MainActivity : AppCompatActivity() {
@@ -53,26 +53,26 @@ class MainActivity : AppCompatActivity() {
     private fun subscribeFCMTopic() {
         FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener(this) { instanceIdResult: InstanceIdResult ->
             val newToken = instanceIdResult.token
-            Log.i("xxx", "newToken: $newToken")
+            Log.i(LOG_TAG, "newToken: $newToken")
         }
-        Log.i("xxx", "subscribeFCMTopic")
+        Log.i(LOG_TAG, "subscribeFCMTopic")
         FirebaseMessaging.getInstance().subscribeToTopic("light")
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    Log.i("xxx", "subscribed")
+                    Log.i(LOG_TAG, "subscribed")
                 } else {
-                    Log.i("xxx", "subscribed failded")
+                    Log.i(LOG_TAG, "subscribed failded")
                 }
             }
     }
 
     override fun onStart() {
         super.onStart()
-        Log.d("xxx", "onStart")
+        Log.d(LOG_TAG, "onStart")
         disableUi()
 
         ServiceManager.askPermissions(this) {
-            Log.d("xxx", "success()")
+            Log.d(LOG_TAG, "success()")
             CoroutineScope(Main).launch {
                 bluetoothManager.subscribe().consumeEach {
                     when (it) {
@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        Log.d("xxx", "onStop")
+        Log.d(LOG_TAG, "onStop")
 
         disableUi()
         bluetoothManager.cancel()
@@ -102,7 +102,8 @@ class MainActivity : AppCompatActivity() {
             switchButton.isEnabled = true
             val isAlarm = it.message.contains("isAlarm: 1", true)
             val color = if (isAlarm) R.color.colorYellow else android.R.color.black
-            switchButton.imageTintList = ColorStateList.valueOf(getColor(color))
+            switchButton.imageTintList =
+                ColorStateList.valueOf(ResourcesCompat.getColor(resources, color, null))
             viewLight.visibility = if (isAlarm) VISIBLE else INVISIBLE
         }
     }
@@ -121,7 +122,8 @@ class MainActivity : AppCompatActivity() {
         motion_base.progress = 0f
         viewLight.visibility = INVISIBLE
         switchButton.isEnabled = false
-        switchButton.backgroundTintList = ColorStateList.valueOf(getColor(R.color.colorGrey))
+        switchButton.backgroundTintList =
+            ColorStateList.valueOf(ResourcesCompat.getColor(resources, R.color.colorGrey, null))
         timeFrom1.isEnabled = false
         timeFrom2.isEnabled = false
         timeTo1.isEnabled = false
@@ -171,7 +173,7 @@ class MainActivity : AppCompatActivity() {
                     } else {
                         makeText(
                             this,
-                            "Time should be after ${SavedTime.timeFrom1()}",
+                            getString(R.string.time_should_be_after_value) + SavedTime.timeFrom1(),
                             LENGTH_LONG
                         ).show()
                     }
@@ -191,7 +193,7 @@ class MainActivity : AppCompatActivity() {
                     if (timeSelected.isAfter(timeFrom1) && timeSelected.isBefore(timeTo1)) {
                         makeText(
                             this,
-                            "Time should NOT be in a range ${SavedTime.timeFrom1()} – ${SavedTime.timeTo1()}",
+                            getString(R.string.time_should_be_in_range_value) + SavedTime.timeFrom1() + " – " + SavedTime.timeTo1(),
                             LENGTH_LONG
                         ).show()
                     } else {
@@ -220,14 +222,14 @@ class MainActivity : AppCompatActivity() {
                         timeSelected.isAfter(timeFrom1) && timeSelected.isBefore(timeTo1) -> {
                             makeText(
                                 this,
-                                "Time should NOT be in a range ${SavedTime.timeFrom1()} – ${SavedTime.timeTo1()}",
+                                getString(R.string.time_should_be_not_be_in_range_value) + SavedTime.timeFrom1() + " – " + SavedTime.timeTo1(),
                                 LENGTH_LONG
                             ).show()
                         }
                         timeSelected.isBefore(timeFrom2) -> {
                             makeText(
                                 this,
-                                "Time should be after $timeFrom2",
+                                getString(R.string.time_should_be_after_value) + timeFrom2,
                                 LENGTH_LONG
                             ).show()
                         }

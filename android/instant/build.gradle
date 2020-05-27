@@ -17,6 +17,6 @@ android {
 }
 dependencies {
     implementation project(':app')
-    implementation 'com.google.firebase:firebase-messaging:20.1.6'
+    implementation 'com.google.firebase:firebase-messaging:20.2.0'
 }
 

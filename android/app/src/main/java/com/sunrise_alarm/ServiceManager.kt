@@ -14,6 +14,7 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import com.sunrise_alarm.Const.LOG_TAG
 
 /*
  * @author Valeriy Palamarchuk
@@ -27,7 +28,7 @@ class ServiceManager {
                 .withPermissions(BLUETOOTH, BLUETOOTH_ADMIN, ACCESS_COARSE_LOCATION)
                 .withListener(object : MultiplePermissionsListener {
                     override fun onPermissionsChecked(report: MultiplePermissionsReport) {
-                        Log.d("xxx", "onPermissionsChecked")
+                        Log.d(LOG_TAG, "onPermissionsChecked")
                         verifyPermissions(report, activity, success)
                     }
 
@@ -35,7 +36,7 @@ class ServiceManager {
                         permissions: List<PermissionRequest>,
                         token: PermissionToken
                     ) {
-                        Log.d("xxx", "onPermissionRationaleShouldBeShown")
+                        Log.d(LOG_TAG, "onPermissionRationaleShouldBeShown")
                         token.continuePermissionRequest()
                     }
                 })
@@ -47,20 +48,34 @@ class ServiceManager {
             activity: AppCompatActivity,
             success: () -> Unit
         ) {
-            Log.d("xxx", "report.areAllPermissionsGranted(): ${report.areAllPermissionsGranted()}")
-            Log.d("xxx", "report.deniedPermissionResponses: ${report.deniedPermissionResponses.map { it.permissionName }}")
-            Log.d("xxx", "report.isAnyPermissionPermanentlyDenied: ${report.isAnyPermissionPermanentlyDenied}")
+            Log.d(
+                LOG_TAG,
+                "report.areAllPermissionsGranted(): ${report.areAllPermissionsGranted()}"
+            )
+            Log.d(
+                LOG_TAG,
+                "report.deniedPermissionResponses: ${report.deniedPermissionResponses.map { it.permissionName }}"
+            )
+            Log.d(
+                LOG_TAG,
+                "report.isAnyPermissionPermanentlyDenied: ${report.isAnyPermissionPermanentlyDenied}"
+            )
 
             if (report.areAllPermissionsGranted()) {
                 val manager = activity.getSystemService(LOCATION_SERVICE) as LocationManager
-                Log.d("xxx", "manager.isProviderEnabled(GPS_PROVIDER): ${manager.isProviderEnabled(GPS_PROVIDER)}")
+                Log.d(
+                    LOG_TAG,
+                    "manager.isProviderEnabled(GPS_PROVIDER): ${manager.isProviderEnabled(
+                        GPS_PROVIDER
+                    )}"
+                )
                 if (manager.isProviderEnabled(GPS_PROVIDER)) {
                     success()
                 } else {
                     AlertDialog.Builder(activity)
-                        .setMessage("Enable GPS to find closest bluetooth")
+                        .setMessage(R.string.enable_gps_message)
                         .setCancelable(false)
-                        .setPositiveButton("Enable") { _, _ ->
+                        .setPositiveButton(R.string.enable) { _, _ ->
                             activity.startActivity(Intent(ACTION_LOCATION_SOURCE_SETTINGS))
                         }
                         .create()

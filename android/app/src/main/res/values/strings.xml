@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Sunrise</string>
+    <string name="pair_with_device">Pair with device</string>
+    <string name="pair_with_device_message">After you click OK the app will insert the pin code by itself. Don\'t do anything and just wait 5 sec.</string>
+    <string name="allow_bt_permission">Allow bluetooth to use the app</string>
+    <string name="message_too_far_from_device">You\'re too far from device</string>
+    <string name="time_should_be_after_value">\"Time should be after \"</string>
+    <string name="time_should_be_in_range_value">\"Time should NOT be in a range \"</string>
+    <string name="time_should_be_not_be_in_range_value">\"Time should NOT be in a range \"</string>
+    <string name="enable_gps_message">Enable GPS to find closest bluetooth</string>
+    <string name="enable">Enable</string>
 </resources>
