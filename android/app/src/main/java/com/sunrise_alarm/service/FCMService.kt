@@ -5,20 +5,26 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.sunrise_alarm.utils.BluetoothManager
 import com.sunrise_alarm.utils.BluetoothManager.BluetoothMessage
+import com.sunrise_alarm.utils.Const.LOG_TAG
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
 
-
+/**
+ * Service to receive FCM notifications triggered by voice
+ *
+ * Responsible for receiving FCM messages (look on firebase-cloud-fun module) and switching the
+ * light even if the app is on the background. Voice integration implemented via IFTTT.
+ */
 class FCMService : FirebaseMessagingService() {
     @ExperimentalCoroutinesApi
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        Log.i("xxx", "From: " + remoteMessage.from)
+        Log.i(LOG_TAG, "From: " + remoteMessage.from)
 
         if (remoteMessage.data.isNotEmpty()) {
-            Log.i("xxx", "Message data payload: " + remoteMessage.data)
+            Log.i(LOG_TAG, "Message data payload: " + remoteMessage.data)
             CoroutineScope(Main).launch {
                 BluetoothManager(this@FCMService, true).apply {
                     val channel = subscribe()
@@ -34,14 +40,14 @@ class FCMService : FirebaseMessagingService() {
                                 this.cancel()
                             } else if (isLightOn || isLightOff) { // command mismatch (light is already on, command: "lights on")
                                 if (counter > 5) {
-                                    Log.i("xxx", "counter > 5 - off")
+                                    Log.i(LOG_TAG, "counter > 5 - off")
                                     this.cancel()
                                 } else {
-                                    Log.i("xxx", "counting: $counter")
+                                    Log.i(LOG_TAG, "counting: $counter")
                                     counter++
                                 }
                             } else {
-                                Log.i("xxx", "received other message: " + it.message)
+                                Log.i(LOG_TAG, "received other message: " + it.message)
                             }
                         }
                     }
@@ -50,12 +56,12 @@ class FCMService : FirebaseMessagingService() {
         }
 
         if (remoteMessage.notification != null) {
-            Log.i("xxx", "Message Notification Body: " + remoteMessage.notification!!.body)
+            Log.i(LOG_TAG, "Message Notification Body: " + remoteMessage.notification!!.body)
         }
     }
 
     // Don't need to update the token because the app uses topic subscription
     override fun onNewToken(token: String) {
-        Log.i("xxx", "Refreshed token: $token")
+        Log.i(LOG_TAG, "Refreshed token: $token")
     }
 }

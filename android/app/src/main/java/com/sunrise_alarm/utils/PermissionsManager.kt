@@ -1,4 +1,4 @@
-package com.sunrise_alarm.service
+package com.sunrise_alarm.utils
 
 import android.Manifest.permission.*
 import android.content.Intent
@@ -22,8 +22,15 @@ import com.sunrise_alarm.utils.Const.LOG_TAG
  * @email valeriij.palamarchuk@gmail.com
  * Created on 17.02.2020
  */
-class ServiceManager {
+
+/**
+ * Incapsulate and simplify requesting permissions
+ */
+class PermissionsManager {
     companion object {
+        /**
+         * Request required permissions and deliver the result via 'success' param
+         */
         fun askPermissions(activity: AppCompatActivity, success: () -> Unit) {
             Dexter.withContext(activity)
                 .withPermissions(BLUETOOTH, BLUETOOTH_ADMIN, ACCESS_COARSE_LOCATION)
@@ -48,6 +55,9 @@ class ServiceManager {
                 .check()
         }
 
+        /**
+         * Verify response of the user and ask additionally in case he rejected the request
+         */
         private fun verifyPermissions(
             report: MultiplePermissionsReport,
             activity: AppCompatActivity,
@@ -66,6 +76,7 @@ class ServiceManager {
                 "report.isAnyPermissionPermanentlyDenied: ${report.isAnyPermissionPermanentlyDenied}"
             )
 
+            // user granted all required permissions
             if (report.areAllPermissionsGranted()) {
                 val manager = activity.getSystemService(LOCATION_SERVICE) as LocationManager
                 Log.d(
@@ -74,9 +85,11 @@ class ServiceManager {
                         GPS_PROVIDER
                     )}"
                 )
+                // checking if GPS is enabled
                 if (manager.isProviderEnabled(GPS_PROVIDER)) {
                     success()
                 } else {
+                    // ask to enable GPS
                     AlertDialog.Builder(activity)
                         .setMessage(R.string.enable_gps_message)
                         .setCancelable(false)
@@ -87,6 +100,7 @@ class ServiceManager {
                         .show()
                 }
             } else {
+                // ask permissions again if not satisfied
                 askPermissions(
                     activity,
                     success

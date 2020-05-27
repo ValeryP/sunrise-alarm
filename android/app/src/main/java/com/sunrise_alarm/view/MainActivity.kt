@@ -18,7 +18,7 @@ import com.sunrise_alarm.utils.BluetoothManager
 import com.sunrise_alarm.utils.BluetoothManager.BluetoothDeviceConnected
 import com.sunrise_alarm.utils.BluetoothManager.BluetoothMessage
 import com.sunrise_alarm.R
-import com.sunrise_alarm.service.ServiceManager
+import com.sunrise_alarm.utils.PermissionsManager
 import com.sunrise_alarm.data.SavedTime
 import com.sunrise_alarm.utils.Const.LOG_TAG
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog
@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
         Log.d(LOG_TAG, "onStart")
         disableUi()
 
-        ServiceManager.askPermissions(this) {
+        PermissionsManager.askPermissions(this) {
             Log.d(LOG_TAG, "success()")
             CoroutineScope(Main).launch {
                 bluetoothManager.subscribe().consumeEach {

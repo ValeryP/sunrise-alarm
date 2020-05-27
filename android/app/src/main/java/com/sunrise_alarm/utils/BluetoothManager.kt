@@ -30,25 +30,37 @@ import org.joda.time.DateTime
  * @email valeriij.palamarchuk@gmail.com
  * Created on 13.02.2020
  */
+
+/**
+ * Incapsulate all interactions with Arduino's bluetooth
+ */
 @ExperimentalCoroutinesApi
 class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
     private var bluetooth = Bluetooth(context)
     private var arduino: BluetoothDevice? = null
 
+    /**
+     * Single interface to unify the messages' format
+     */
     interface BluetoothEvent {
         val message: String
     }
 
+    // Errors custom type for bluetooth interactions
     data class BluetoothError(override val message: String) :
         BluetoothEvent
+
     data class BluetoothMessage(override val message: String) :
         BluetoothEvent
+
     data class BluetoothDeviceConnected(override val message: String) :
         BluetoothEvent
 
+    // Interface which act as hot observables pattern to broadcast the bluetooth signals
     var bluetoothChannel = ConflatedBroadcastChannel<BluetoothEvent>()
     var discoveryChannel = ConflatedBroadcastChannel<BluetoothEvent>()
     var deviceChannel = ConflatedBroadcastChannel<BluetoothEvent>()
+
     private val pairDialog = AlertDialog.Builder(context)
         .setTitle(R.string.pair_with_device)
         .setMessage(R.string.pair_with_device_message)
@@ -56,6 +68,9 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
         .setPositiveButton(android.R.string.ok) { _, _ -> bluetooth.pair(arduino, BLUETOOTH_PIN) }
         .create()
 
+    /**
+     * Establish bluetooth connection and start listening for the events
+     */
     fun subscribe(): ReceiveChannel<BluetoothEvent> {
         if (logsEnabled) Log.d(LOG_TAG, "subscribe -> subscribe()")
 
@@ -85,6 +100,9 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
         return deviceChannel.openSubscription()
     }
 
+    /**
+     * Cancel all hot channels and stop listening for the events
+     */
     fun cancel() {
         bluetoothChannel.cancel()
         discoveryChannel.cancel()
@@ -95,11 +113,18 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
         arduino = null
     }
 
+    /**
+     * Change the state of the lights
+     */
     fun switchLight() {
         bluetooth.send("1|")
     }
 
-    // E.g: "0|202001250544 [0545-1001,1029-1010,]"
+    /**
+     * Update the values of the active time ranges on the Arduino
+     *
+     * E.g: "0|202001250544 [0545-1001,1029-1010,]"
+     */
     fun updateAlarmRanges() {
         val msg = "0|${DateTime.now().toString("yyyyMMddHHmm")} " +
                 "[${SavedTime.timeFrom1()}-${SavedTime.timeTo1()}," +
@@ -111,32 +136,45 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
         bluetooth.onActivityResult(requestCode, resultCode)
     }
 
+    /**
+     * Send a signal on selected broadcasting channel
+     */
     private fun emitMessage(channel: BroadcastChannel<BluetoothEvent>, message: String) {
         if (!channel.isClosedForSend) {
             if (logsEnabled) Log.d(LOG_TAG, "emitMessage -> $message")
-            GlobalScope.launch(Main) { channel.send(
-                BluetoothMessage(
-                    message
+            GlobalScope.launch(Main) {
+                channel.send(
+                    BluetoothMessage(
+                        message
+                    )
                 )
-            ) }
+            }
         } else {
             Log.w(LOG_TAG, "emitMessage - channel.isClosedForSend: ${channel.isClosedForSend}")
         }
     }
 
+    /**
+     * Send an error on selected broadcasting channel
+     */
     private fun emitError(channel: BroadcastChannel<BluetoothEvent>, message: String) {
         if (!channel.isClosedForSend) {
             if (logsEnabled) Log.d(LOG_TAG, "emitError -> $message")
-            GlobalScope.launch(Main) { channel.send(
-                BluetoothError(
-                    message
+            GlobalScope.launch(Main) {
+                channel.send(
+                    BluetoothError(
+                        message
+                    )
                 )
-            ) }
+            }
         } else {
             Log.w(LOG_TAG, "emitError - channel.isClosedForSend: ${channel.isClosedForSend}")
         }
     }
 
+    /**
+     * Register a channel and listen for bluetooth state events
+     */
     private fun registerBluetoothChannel() {
         bluetooth.setBluetoothCallback(object : BluetoothCallback {
             override fun onBluetoothTurningOn() {
@@ -157,11 +195,18 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
 
             override fun onUserDeniedActivation() {
                 emitMessage(bluetoothChannel, "statusCallback -> onUserDeniedActivation")
-                makeText(context, context.getString(R.string.allow_bt_permission), LENGTH_LONG).show()
+                makeText(
+                    context,
+                    context.getString(R.string.allow_bt_permission),
+                    LENGTH_LONG
+                ).show()
             }
         })
     }
 
+    /**
+     * Register a channel and listen for bluetooth connection events
+     */
     private fun registerDiscoveryChannel() {
         bluetooth.setDiscoveryCallback(object : DiscoveryCallback {
             override fun onDiscoveryStarted() {
@@ -169,11 +214,18 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
                 arduino = null
             }
 
+            /**
+             * Triggered once the required device was discovered
+             */
             override fun onDiscoveryFinished() {
                 emitMessage(discoveryChannel, "pairingCallback -> onDiscoveryFinished")
                 val device = bluetooth.pairedDevices.firstOrNull { it.address == DEVICE_ADDRESS }
                 if (arduino == null) {
-                    makeText(context, context.getString(R.string.message_too_far_from_device), LENGTH_LONG).show()
+                    makeText(
+                        context,
+                        context.getString(R.string.message_too_far_from_device),
+                        LENGTH_LONG
+                    ).show()
                 } else if (device == null) {
                     if (!pairDialog.isShowing) {
                         emitMessage(
@@ -185,6 +237,9 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
                 }
             }
 
+            /**
+             * Triggered once the user accepted to connect
+             */
             override fun onDeviceFound(device: BluetoothDevice) {
                 emitMessage(
                     discoveryChannel,
@@ -199,6 +254,9 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
                 }
             }
 
+            /**
+             * Triggered once the device was successfully connected
+             */
             override fun onDevicePaired(device: BluetoothDevice) {
                 emitMessage(discoveryChannel, "pairingCallback -> onDevicePaired: ${device.name}")
                 bluetooth.connectToAddress(DEVICE_ADDRESS)
@@ -214,17 +272,21 @@ class BluetoothManager(val context: Context, val logsEnabled: Boolean = false) {
         })
     }
 
+    /**
+     * Register a channel and listen for bluetooth message events
+     */
     private fun registerDeviceChannel() {
         bluetooth.setDeviceCallback(object : DeviceCallback {
             override fun onDeviceConnected(device: BluetoothDevice?) {
                 if (!deviceChannel.isClosedForSend) {
                     GlobalScope.launch(Main) {
                         deviceChannel.send(
-                            BluetoothDeviceConnected(
-                                "connectionCallback -> onDeviceConnected"
-                            )
+                            BluetoothDeviceConnected("connectionCallback -> onDeviceConnected")
                         )
-                        if (logsEnabled) Log.d(LOG_TAG, "registerDeviceChannel -> onDeviceConnected")
+                        if (logsEnabled) Log.d(
+                            LOG_TAG,
+                            "registerDeviceChannel -> onDeviceConnected"
+                        )
                     }
                 }
             }

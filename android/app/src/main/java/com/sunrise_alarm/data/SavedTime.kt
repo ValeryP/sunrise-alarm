@@ -7,6 +7,15 @@ import com.chibatching.kotpref.KotprefModel
  * @email valeriij.palamarchuk@gmail.com
  * Created on 2020-02-01
  */
+
+/**
+ * Object to manage state of the app
+ *
+ * Uses lib to sync all the data with SharedPreferences. Has two time ranges (morning, evening).
+ * Default time ranges are:
+ * - morning: 5.50 - 9.10
+ * - evening: 18.00 - 21.30
+ */
 object SavedTime : KotprefModel() {
     var hourFrom1 by intPref(default = 5)
     var minFrom1 by intPref(default = 55)
