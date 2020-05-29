@@ -7,20 +7,20 @@ in the bedroom to come on gradually, over a period of 30 minutes to 2 hours, bef
 
 ## Table of contents
 
-- 🏗 [Structure](#-structure)
-- ⭐️ [Features](#-features)
-- 🛠 [Electronics](#-used-electronics)
+- 🏗 [Architecture](#architecture)
+- ⭐️ [Features](#features)
+- 🛠 [Electronics](#used-electronics)
 - ✉️ [Feedback](https://t.me/p_val)
 
-[<img src="https://github.com/ValeryP/sunrise-alarm/blob/dev/android/publish/demo.png" width="100%">]()
+[<img src="https://github.com/ValeryP/sunrise-alarm/blob/dev/android/publish/demo.png" width="100%">](https://youtu.be/KI6cZdYew8k)
 
-### 🏗️ Structure
+### Architecture
 
 - `android` - Android app to connect to Arduino via Bluetooth
 - `arduino` - Arduino used to control the home lights
 - `firebase-cloud-fun` - FCM function to transfer voice assistant commant to Android app via IFTTT
 
-### ⭐️ Features
+### Features
 
 - Turns table lamp into a smart lamp using Arduino
 - Remote control using Bluetooth and Android app
@@ -28,7 +28,7 @@ in the bedroom to come on gradually, over a period of 30 minutes to 2 hours, bef
 - Voice control over smart home using [IFTTT](https://ifttt.com/) and [FCM](https://firebase.google.com/docs/cloud-messaging)
 - The mobile app to set up waking time
 
-### 🛠 Used electronics
+### Used electronics
 
 - [Arduino Nano](https://store.arduino.cc/arduino-nano)
 - [Breadboard mini](https://www.aliexpress.com/item/32523562738.html?spm=a2g0s.9042311.0.0.27424c4dW3Ildy)
