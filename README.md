@@ -7,14 +7,14 @@ in the bedroom to come on gradually, over a period of 30 minutes to 2 hours, bef
 
 ## Table of contents
 
-- 🏗 [Architecture](#-architecture)
+- 🏗 [Structure](#-structure)
 - ⭐️ [Features](#-features)
 - 🛠 [Electronics](#-used-electronics)
 - ✉️ [Feedback](https://t.me/p_val)
 
 [<img src="https://github.com/ValeryP/sunrise-alarm/blob/dev/android/publish/demo.png" width="100%">]()
 
-### 🏗️ Architecture
+### 🏗️ Structure
 
 - `android` - Android app to connect to Arduino via Bluetooth
 - `arduino` - Arduino used to control the home lights
